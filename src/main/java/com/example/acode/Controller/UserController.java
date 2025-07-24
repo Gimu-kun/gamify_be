@@ -1,6 +1,7 @@
 package com.example.acode.Controller;
 
 import com.example.acode.DTO.User.UserCreationRequestDto;
+import com.example.acode.DTO.User.UserLoginRequestDto;
 import com.example.acode.DTO.User.UserUpdateRequestDto;
 import com.example.acode.Entity.User;
 import com.example.acode.Service.UserService;
@@ -43,6 +44,11 @@ public class UserController {
         }catch(Exception e){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Lỗi" + e);
         }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> userLogin(@RequestBody UserLoginRequestDto request){
+        return userService.userLogin(request);
     }
 
     @PatchMapping("/{id}")

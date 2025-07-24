@@ -1,10 +1,12 @@
 package com.example.acode.Service;
 
 import com.example.acode.DTO.User.UserCreationRequestDto;
+import com.example.acode.DTO.User.UserLoginRequestDto;
 import com.example.acode.DTO.User.UserUpdateRequestDto;
 import com.example.acode.Entity.User;
 import com.example.acode.Enum.UserAchievementEnum;
 import com.example.acode.Repository.UserRepository;
+import com.example.acode.Utils.JwtUtil;
 import com.example.acode.Utils.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class UserService {
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    JwtUtil jwtUtil;
 
     public List<User> getAllUsers(){
         return userRepository.findAll();
@@ -134,5 +138,20 @@ public class UserService {
 
         userRepository.save(user);
         return ResponseEntity.ok("Tăng kinh nghiệm thành công!");
+    }
+
+    public ResponseEntity<String> userLogin(UserLoginRequestDto request){
+        Optional<User> user = userRepository.findByUsername(request.getUsername());
+        if (user.isEmpty()){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Tài khoản không tồn tại");
+        }
+        String encodedPass = user.get().getPasswords();
+        String rawPass = request.getPasswords();
+        if (!PasswordUtil.checkPassword(rawPass,encodedPass)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mật khẩu không chính xác");
+        }
+
+        String token = jwtUtil.createToken();
+        return ResponseEntity.ok(token);
     }
 }
