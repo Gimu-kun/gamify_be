@@ -54,4 +54,9 @@ public class UserController {
     public ApiResponse<?> decodeToken(@PathVariable String token){
         return userService.decodeToken(token);
     }
+
+    @PostMapping("/{id}")
+    public ApiResponse<?> increaseExp(@PathVariable String id,@RequestParam String exp){
+        return userService.increaseExp(id,Integer.parseInt(exp));
+    };
 }

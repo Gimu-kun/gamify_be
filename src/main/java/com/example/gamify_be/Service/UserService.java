@@ -2,6 +2,7 @@ package com.example.gamify_be.Service;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.example.gamify_be.Dto.ApiResponse.ApiResponse;
+import com.example.gamify_be.Dto.User.ExpUpgradeResponse;
 import com.example.gamify_be.Dto.User.UserCreationRequestDto;
 import com.example.gamify_be.Dto.User.UserLoginDto;
 import com.example.gamify_be.Dto.User.UserUpdateRequestDto;
@@ -23,6 +24,8 @@ public class UserService {
     UserRepository userRepository;
     @Autowired
     JwtUtil jwtUtil;
+    @Autowired
+    BadgeService badgeService;
 
     private boolean isUsernameExisted(String username){
         Optional<User> user = userRepository.findByUsername(username);
@@ -161,5 +164,24 @@ public class UserService {
     public ApiResponse<?> decodeToken(String token){
         DecodedJWT jwt = jwtUtil.decodeToken(token);
         return ApiResponse.success("Mã token",jwt.getSubject());
+    }
+
+    public ApiResponse<?> increaseExp(String id, Integer exp){
+        User user = getUserById(id);
+        if (user == null){
+            return ApiResponse.error("Không tìm thấy tài khoản tương ứng",HttpStatus.NOT_FOUND);
+        }
+        Integer currentExp = user.getExp() + exp;
+        Integer currentBadgeLevel = badgeService.getLevelById(user.getBadge_id());
+        user.setExp(currentExp);
+        boolean upgradeFlag = false;
+        if (badgeService.isUpgradeBadge(currentExp,currentBadgeLevel) && currentBadgeLevel < 6){
+            Integer targetBadgeId = badgeService.getBadgeIdByLevel(currentBadgeLevel + 1);
+            user.setBadge_id(targetBadgeId);
+            upgradeFlag = true;
+        }
+        userRepository.save(user);
+        ExpUpgradeResponse response = new ExpUpgradeResponse(upgradeFlag);
+        return ApiResponse.success("Đã tăng " + exp + " exp",response);
     }
 }
