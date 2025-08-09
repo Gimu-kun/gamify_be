@@ -34,7 +34,7 @@ public class JourneyService {
     }
 
     //Hàm tìm kiếm đối tượng lộ trình bằng id
-    private Journey getJourneyById(String id){
+    public Journey getJourneyById(String id){
         Optional<Journey> journey = journeyRepository.findById(id);
         return journey.orElse(null);
     }
