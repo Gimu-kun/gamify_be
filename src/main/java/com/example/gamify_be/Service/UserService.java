@@ -39,6 +39,12 @@ public class UserService {
         return user.orElse(null);
     }
 
+    //Hàm truy xuất tên tài khoản bằng ID
+    public String getUsernameById(String id){
+        Optional<User> user = userRepository.findById(id);
+        return user.map(User::getUsername).orElse(null);
+    }
+
     //Truy xuất tất cả người dùng
     public List<User> getAllUsers(){
         return userRepository.findAll();
