@@ -1,17 +1,14 @@
 package com.example.gamify_be.Dto.Lesson;
 
-import jakarta.persistence.Column;
-import org.springframework.web.multipart.MultipartFile;
-
-public class LessonCreationRequestDto {
+public class LessonRequestDto {
     private Integer chapterId;
     private String title;
     private String content;
     private String operator;
 
-    public LessonCreationRequestDto(){}
+    public LessonRequestDto(){}
 
-    public LessonCreationRequestDto( Integer chapterId, String title, String content, String operator) {
+    public LessonRequestDto(Integer chapterId, String title, String content, String operator) {
         this.chapterId = chapterId;
         this.title = title;
         this.content = content;
