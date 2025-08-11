@@ -3,6 +3,7 @@ package com.example.gamify_be.Entity;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name = "chapters")
 public class Chapter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -11,6 +12,8 @@ public class Chapter {
     private String displayName;
     private String created_by;
     private String updated_by;
+
+    public Chapter(){}
 
     public Chapter(String displayName, String operator) {
         this.displayName = displayName;
