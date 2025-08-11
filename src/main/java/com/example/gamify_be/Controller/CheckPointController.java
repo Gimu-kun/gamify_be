@@ -8,6 +8,8 @@ import com.example.gamify_be.Service.CheckPointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/check_point")
 @CrossOrigin("*")
@@ -18,6 +20,16 @@ public class CheckPointController {
     @PostMapping()
     public ApiResponse<CheckPoint> createCP(@RequestBody CPRequestDto req){
         return checkPointService.createCP(req);
+    }
+
+    @GetMapping()
+    public ApiResponse<List<CheckPoint>> getAllCP(){
+        return checkPointService.getAllCP();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<CheckPoint> getCPById(@PathVariable String id){
+        return checkPointService.getCPById(id);
     }
 
     @PatchMapping("/position/{id}")

@@ -7,14 +7,12 @@ import com.example.gamify_be.Entity.CheckPoint;
 import com.example.gamify_be.Entity.Journey;
 import com.example.gamify_be.Entity.User;
 import com.example.gamify_be.Repository.CheckPointRepository;
+import com.google.protobuf.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class CheckPointService {
@@ -27,8 +25,13 @@ public class CheckPointService {
     @Autowired
     JourneyService journeyService;
 
+    //Hàm kiểm tra ải tồn tại hay không bằng id
+    public boolean isExistedById(String id){
+        return checkPointRepository.findById(id).isPresent();
+    }
+
     //Hàm tìm ải bằng ID
-    private CheckPoint getCPById(String id){
+    private CheckPoint getById(String id){
         return checkPointRepository.findById(id).orElse(null);
     }
 
@@ -126,7 +129,7 @@ public class CheckPointService {
     //Cập nhật nội dung ải
     public ApiResponse<CheckPoint> updateCP(String id, CPRequestDto req){
         //Tìm đối tượng ải
-        CheckPoint checkPoint = getCPById(id);
+        CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
             return ApiResponse.error("Không tìm thấy đối tượng ải tương ứng", HttpStatus.NOT_FOUND);
         }
@@ -165,7 +168,7 @@ public class CheckPointService {
     //Thiết lập ải vào lộ trình và màn
     public ApiResponse<CheckPoint> setPosition(String id,CPPositionRequestDto req){
         //Tìm kiếm đối tượng ải tương ứng
-        CheckPoint checkPoint = getCPById(id);
+        CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
             return ApiResponse.error("Không tìm được ải tương ứng", HttpStatus.NOT_FOUND);
         }
@@ -205,7 +208,7 @@ public class CheckPointService {
     //Cập nhật thứ tự ải
     public ApiResponse<CheckPoint> setCPOrder(String id, Integer ord, String operatorId){
         //Tìm ra đối tượng ải tương ứng
-        CheckPoint checkPoint = getCPById(id);
+        CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
             return ApiResponse.error("Không tìm thấy ải tương ứng",HttpStatus.NOT_FOUND);
         }
@@ -256,7 +259,7 @@ public class CheckPointService {
     //Huỷ thứ tự ải
     public ApiResponse<CheckPoint>  removeCPOrder(String id, String operatorId){
         //Tìm ra đối tượng ải tương ứng
-        CheckPoint checkPoint = getCPById(id);
+        CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
             return ApiResponse.error("Không tìm thấy ải tương ứng",HttpStatus.NOT_FOUND);
         }
@@ -292,5 +295,19 @@ public class CheckPointService {
         }catch(Exception e){
             return ApiResponse.error("Lỗi trong quá trình huỷ thứ tự ải : " + e, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    //Lấy tất cả dữ liệu ải
+    public ApiResponse<List<CheckPoint>> getAllCP() {
+        return ApiResponse.success("Lấy dữ liệu ải thành công",checkPointRepository.findAll());
+    }
+
+    //Lấy dữ liệu ải theo id
+    public ApiResponse<CheckPoint> getCPById(String id){
+        CheckPoint cp = getById(id);
+        if (cp == null){
+            return ApiResponse.error("ID ải không tồn tại",HttpStatus.NOT_FOUND);
+        }
+        return ApiResponse.success("Lấy thông tin ải theo id thành công",cp);
     }
 }
