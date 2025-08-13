@@ -6,6 +6,7 @@ import com.example.gamify_be.Dto.CheckPoint.CPPositionRequestDto;
 import com.example.gamify_be.Entity.CheckPoint;
 import com.example.gamify_be.Service.CheckPointService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,41 +19,41 @@ public class CheckPointController {
     CheckPointService checkPointService;
 
     @PostMapping()
-    public ApiResponse<CheckPoint> createCP(@RequestBody CPRequestDto req){
+    public ResponseEntity<ApiResponse<CheckPoint>> createCP(@RequestBody CPRequestDto req){
         return checkPointService.createCP(req);
     }
 
     @GetMapping()
-    public ApiResponse<List<CheckPoint>> getAllCP(){
+    public ResponseEntity<ApiResponse<List<CheckPoint>>> getAllCP(){
         return checkPointService.getAllCP();
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<CheckPoint> getCPById(@PathVariable String id){
+    public ResponseEntity<ApiResponse<CheckPoint>> getCPById(@PathVariable String id){
         return checkPointService.getCPById(id);
     }
 
     @PatchMapping("/position/{id}")
-    public ApiResponse<CheckPoint> setPosition(@PathVariable String id,
+    public ResponseEntity<ApiResponse<CheckPoint>> setPosition(@PathVariable String id,
                                                @RequestBody CPPositionRequestDto req){
         return checkPointService.setPosition(id,req);
     }
 
     @PatchMapping("/ord/{id}")
-    public ApiResponse<CheckPoint> setCPOrder(@PathVariable String id,
+    public ResponseEntity<ApiResponse<CheckPoint>> setCPOrder(@PathVariable String id,
                                               @RequestParam Integer order,
                                               @RequestParam String operator){
         return checkPointService.setCPOrder(id,order,operator);
     }
 
     @PatchMapping("/rm_ord/{id}")
-    public ApiResponse<CheckPoint> removeCPOrder(@PathVariable String id,
+    public ResponseEntity<ApiResponse<CheckPoint>> removeCPOrder(@PathVariable String id,
                                                  @RequestParam String operator){
         return checkPointService.removeCPOrder(id,operator);
     }
 
     @PatchMapping("/update/{id}")
-    public ApiResponse<CheckPoint> updateCP(@PathVariable String id,
+    public ResponseEntity<ApiResponse<CheckPoint>> updateCP(@PathVariable String id,
                                             @RequestBody CPRequestDto req){
         return checkPointService.updateCP(id,req);
     }

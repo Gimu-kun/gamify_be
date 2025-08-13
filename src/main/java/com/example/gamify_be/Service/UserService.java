@@ -46,58 +46,82 @@ public class UserService {
     }
 
     //Truy xuất tất cả người dùng
-    public List<User> getAllUsers(){
-        return userRepository.findAll();
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers(){
+        return ResponseEntity.ok(ApiResponse.success("Lấy danh sách tất cả người dùng thành công",userRepository.findAll()));
     };
 
     //Truy xuất người dùng bằng id
     public User getUserById(String id){
         Optional<User> user = userRepository.findById(id);
-        return user.orElse(null);
+        return  user.orElse(null);
+    }
+
+    public ResponseEntity<ApiResponse<User>> findUserById(String id){
+        Optional<User> user = userRepository.findById(id);
+        return user.map(value -> ResponseEntity.ok(ApiResponse.success("Đã tìm thấy người dùng", value)))
+                .orElseGet(() -> ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Không tìm thấy người dùng với id " + id)));
     }
 
     //Đăng ký tài khoản mới
-    public ApiResponse<?> userEnroll(UserCreationRequestDto req){
+    public ResponseEntity<ApiResponse<?>> userEnroll(UserCreationRequestDto req){
 
         //Xác thực dữ liệu đầu vào trước khi thêm
         //Tên tài khoản không được để trống
         if (req.getUsername() == null || req.getUsername().isBlank()){
-            return ApiResponse.error("Tên đăng nhập không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Tên đăng nhập không được để trống"));
         }
 
         //Tên tài khoản phải có ít nhất 8 ký tự
         if (req.getUsername().length() < 8 ){
-            return ApiResponse.error("Tên tài khoản không được ít hơn 8 kí tự",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Tên tài khoản không được ít hơn 8 kí tự"));
         }
 
         //Tên tài khoản không được trùng
         if (isUsernameExisted(req.getUsername())){
-            return ApiResponse.error("Tên tài khoản đã tồn tại!",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("Tên tài khoản đã tồn tại!"));
         }
 
         //Mật khẩu không được để trống
         if (req.getPasswords() == null || req.getPasswords().isBlank()){
-            return ApiResponse.error("Mật khẩu không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu không được để trống"));
         }
 
         //Mật khẩu phải có ít nhất 8 ký tự
         if (req.getPasswords().length() < 8 ){
-            return ApiResponse.error("Mật khẩu không được ít hơn 8 kí tự",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu không được ít hơn 8 kí tự"));
         }
 
         //Giới tính bắc buộc
         if (req.getGender() == null){
-            return ApiResponse.error("Mời chọn giới tính",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mời chọn giới tính"));
         }
 
         //Ngày sinh không được để trống
         if (req.getDob() == null){
-            return ApiResponse.error("Mời nhập ngày sinh",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mời nhập ngày sinh"));
         }
 
         //Họ và tên không được để trống
         if (req.getFull_name() == null || req.getFull_name().isBlank()){
-            return ApiResponse.error("Họ và tên không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Họ và tên không được để trống"));
         }
 
         //Lưu đối tượng người dùng mới xuống CSDL
@@ -109,31 +133,39 @@ public class UserService {
                     req.getGender(),
                     req.getDob());
             userRepository.save(nUser);
-            return ApiResponse.success("Đăng ký thành công, chúc bạn có một ngày học vui vẻ!",null);
+            return ResponseEntity.ok(ApiResponse.success("Đăng ký thành công, chúc bạn có một ngày học vui vẻ!",null));
         }catch(Exception ex){
-            return ApiResponse.error("Lỗi : " + ex, HttpStatus.CONFLICT);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi : " + ex));
         }
     }
 
     //Cập nhật thông tin người dùng
-    public ApiResponse<?> userUpdate(String id, UserUpdateRequestDto req){
+    public ResponseEntity<ApiResponse<?>> userUpdate(String id, UserUpdateRequestDto req){
         //Tìm ra đối tượng người dùng
         User user = getUserById(id);
 
         //TH1: Không tìm thấy đối tượng người dùng
         if (user == null){
-            return ApiResponse.error("Không tìm thấy người dùng tương ứng với id " + id,HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người dùng tương ứng với id " + id));
         }
 
         //TH2: Tìm thấy đối tượng người dùng
         //Mật khẩu xác thực không được để trống
         if (req.getPasswords_confirm() == null || req.getPasswords_confirm().isBlank()){
-            return ApiResponse.error("Mật khẩu xác thực không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu xác thực không được để trống"));
         }
 
         //Xác thực mật khẩu trước khi cập nhật dữ liệu
         if (!PasswordsUtil.checkPassword(req.getPasswords_confirm(),user.getPasswords())){
-            return  ApiResponse.error("Mật khẩu xác thực không đúng",HttpStatus.BAD_REQUEST);
+            return  ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu xác thực không đúng"));
         }
 
         //Xác thực và cập nhật các trường còn lại
@@ -141,17 +173,22 @@ public class UserService {
             user.setFull_name(req.getFull_name());
         }
 
+        //Xác thực và cập nhật mật khẩu
         if (req.getPasswords() != null){
             if (req.getPasswords().length() < 8){
-                return ApiResponse.error("Mật khẩu phải có ít nhất 8 ký tự", HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Mật khẩu phải có ít nhất 8 ký tự"));
             }
             user.setPasswords(PasswordsUtil.hashPassword(req.getPasswords()));
         }
 
+        //Xác thực giới tính
         if (req.getGender() != null){
             req.setGender(req.getGender());
         }
 
+        //Xác thự ngày sinh
         if (req.getDob() != null){
             req.setDob(req.getDob());
         }
@@ -159,22 +196,28 @@ public class UserService {
         //Lưu đối tượng đã cập nhật xuống CSDL
         try{
             userRepository.save(user);
-            return ApiResponse.success("Cập nhật thành công",null);
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật thành công",null));
         }catch(Exception ex){
-            return ApiResponse.error("Lỗi : " + ex, HttpStatus.CONFLICT);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi : " + ex));
         }
     };
 
     //Đăng nhập
-    public ApiResponse<?> userLogin(UserLoginDto req){
+    public ResponseEntity<ApiResponse<?>> userLogin(UserLoginDto req){
         //Tên tài khoản không được để trống
         if (req.getUsername() == null){
-            return ApiResponse.error("Tài khoản không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Tài khoản không được để trống"));
         }
 
         //Mật khẩu không được để trống
         if (req.getPasswords() == null){
-            return ApiResponse.error("Mật khẩu không được để trống",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu không được để trống"));
         }
 
         //Tìm kiếm đối tượng người dùng bằng tên tài khoản
@@ -182,32 +225,38 @@ public class UserService {
 
         //TH1: Không tìm thấy đối tượng người dùng
         if (user == null){
-            return ApiResponse.error("Tài khoản không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Tài khoản không tồn tại"));
         }
         //TH2: Tìm thấy đối tượng người dùng
         //Xác thực mật khẩu
         if (!PasswordsUtil.checkPassword(req.getPasswords(),user.getPasswords())){
-            return ApiResponse.error("Mật khẩu đăng nhập không đúng",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Mật khẩu đăng nhập không đúng"));
         }
         //Đăng nhập thành công
-        return ApiResponse.success("Đăng nhập thành công, chúc một ngày học tập vui vẻ",jwtUtil.createToken(user.getId()));
+        return ResponseEntity.ok(ApiResponse.success("Đăng nhập thành công, chúc một ngày học tập vui vẻ",jwtUtil.createToken(user.getId())));
     }
 
     //Giải mã JWT để lấy userId trong subject
-    public ApiResponse<?> decodeToken(String token){
+    public ResponseEntity<ApiResponse<?>> decodeToken(String token){
         DecodedJWT jwt = jwtUtil.decodeToken(token);
-        return ApiResponse.success("Mã token",jwt.getSubject());
+        return ResponseEntity.ok(ApiResponse.success("Mã token",jwt.getSubject()));
     }
 
     //Tăng kinh nghiệm của tài khoản
-    public ApiResponse<?> increaseExp(String id, Integer exp){
+    public ResponseEntity<ApiResponse<?>> increaseExp(String id, Integer exp){
 
         //Tìm đối tượng người dùng bằng id
         User user = getUserById(id);
 
         //Không tìm thấy đối tượng người dùng tương ứng
         if (user == null){
-            return ApiResponse.error("Không tìm thấy tài khoản tương ứng",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy tài khoản tương ứng"));
         }
 
         //Cập nhật kinh nghiệm và huy hiệu mới nếu đạt móc kinh nghiệm quy định
@@ -223,6 +272,6 @@ public class UserService {
         //Lưu lại dữ liệu đã cập nhật
         userRepository.save(user);
         ExpUpgradeResponse response = new ExpUpgradeResponse(upgradeFlag);
-        return ApiResponse.success("Đã tăng " + exp + " exp",response);
+        return ResponseEntity.ok(ApiResponse.success("Đã tăng " + exp + " exp",response));
     }
 }

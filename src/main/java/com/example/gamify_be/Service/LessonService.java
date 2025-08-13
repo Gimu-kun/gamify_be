@@ -8,6 +8,7 @@ import com.example.gamify_be.Utils.FirebaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.MultipartProperties;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,19 +44,25 @@ public class LessonService {
     }
 
     //Hàm tạo bài học mới
-    public ApiResponse<Lesson> createLesson(LessonRequestDto req, MultipartFile image) throws IOException {
+    public ResponseEntity<ApiResponse<Lesson>> createLesson(LessonRequestDto req, MultipartFile image) throws IOException {
         //Xác thực thông tin : Tiêu đề
         if (req.getTitle() == null || req.getTitle().isBlank()){
-            return ApiResponse.error("Yêu cầu API thiếu thông tin: Tiêu đề",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu API thiếu thông tin: Tiêu đề"));
         }
 
         if (isTitleExisted(req.getTitle())){
-            return ApiResponse.error("Tiêu đề bài học đã tồn tại",HttpStatus.CONFLICT);
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("Tiêu đề bài học đã tồn tại"));
         }
 
         //Xác thực thông tin : Nội dung bài học
         if (req.getContent() == null || req.getContent().isBlank()){
-            return ApiResponse.error("Yêu cầu API thiếu thông tin: Nội dung bài học",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu API thiếu thông tin: Nội dung bài học"));
         }
 
         //Xác thực thông tin : Ảnh
@@ -64,18 +71,24 @@ public class LessonService {
         if (image != null){
             //Kiểm tra định dạng ảnh
             if (!Objects.equals(image.getContentType(), "image/png") && !Objects.equals(image.getContentType(), "image/jpeg")){
-                return ApiResponse.error("Hình ảnh chỉ chấp nhận phần mở rộng là png,jpg,jpeg",HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Hình ảnh chỉ chấp nhận phần mở rộng là png,jpg,jpeg"));
             }
 
             //Kiểm tra kích thước ảnh (tối đa 10MB)
             if (image.getSize() > multipartProperties.getMaxFileSize().toBytes()){
-                return ApiResponse.error("Hình ảnh chỉ chấp nhận dung lượng tối đa 10MB",HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Hình ảnh chỉ chấp nhận dung lượng tối đa 10MB"));
             }
 
             try{
                 fileUrl = firebaseUtil.uploadImage(image,fileName);
             }catch (Exception e){
-                return ApiResponse.error("Lỗi đăng tải ảnh : "+e,HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("Lỗi đăng tải ảnh : "+e));
             }
         }
 
@@ -83,17 +96,23 @@ public class LessonService {
 
         //Xác thực thông tin : ID chương
         if (!chapterService.isExistByID(req.getChapterId())){
-            return ApiResponse.error("ID chương không tồn tại", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID chương không tồn tại"));
         }
 
         //Xác thực thông tin người thao tác
         if (req.getOperator() == null){
-            return ApiResponse.error("Yêu cầu API thiếu thông tin : ID người thao tác", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu API thiếu thông tin : ID người thao tác"));
         }
 
         String operatorName = userService.getUsernameById(req.getOperator());
         if (operatorName == null){
-            return ApiResponse.error("ID người thao tác không tồn tại", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID người thao tác không tồn tại"));
         }
 
         //Tạo đối tượng bài học mới
@@ -102,38 +121,44 @@ public class LessonService {
 
         //Lưu bài học xuống CSDL
         lessonRepository.save(nLesson);
-        return ApiResponse.success("Tạo bài học thành công",nLesson);
+        return ResponseEntity.ok(ApiResponse.success("Tạo bài học thành công",nLesson));
     }
 
     //Lấy tất cả dữ liệu bài học
-    public ApiResponse<List<Lesson>> getAllLesson() {
-        return ApiResponse.success("Lấy tất cả dữ liệu bài học thành công", lessonRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Lesson>>> getAllLesson() {
+        return ResponseEntity.ok(ApiResponse.success("Lấy tất cả dữ liệu bài học thành công", lessonRepository.findAll()));
     }
 
     //Lấy dữ liệu bài học bằng id
-    public ApiResponse<Lesson> getLessonById(String id) {
+    public ResponseEntity<ApiResponse<Lesson>> getLessonById(String id) {
         Optional<Lesson> lesson = lessonRepository.findById(id);
-        return lesson.map(value -> ApiResponse.success("Lấy dữ liệu bài học theo id thành công", value))
-                .orElseGet(() -> ApiResponse.error("Không tìm thấy dữ liệu bài học theo id : " + id, HttpStatus.NOT_FOUND));
+        return lesson.map(value -> ResponseEntity.ok(ApiResponse.success("Lấy dữ liệu bài học theo id thành công", value)))
+                .orElseGet(() -> ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Không tìm thấy dữ liệu bài học theo id : " + id)));
     }
 
     //Lấy dữ liệu bài học theo id ải
-    public ApiResponse<List<Lesson>> getLessonByCPId(String checkPointId) {
-        return ApiResponse.success("Lấy tất cả dữ liệu bài học theo ải thành công", lessonRepository.findAllByCheckPointId(checkPointId));
+    public ResponseEntity<ApiResponse<List<Lesson>>> getLessonByCPId(String checkPointId) {
+        return ResponseEntity.ok(ApiResponse.success("Lấy tất cả dữ liệu bài học theo ải thành công", lessonRepository.findAllByCheckPointId(checkPointId)));
     }
 
     //Chỉnh sửa nội dung bài học
-    public ApiResponse<Lesson> updateLesson(String lessonId, LessonRequestDto req, MultipartFile image){
+    public ResponseEntity<ApiResponse<Lesson>> updateLesson(String lessonId, LessonRequestDto req, MultipartFile image){
         //Tìm kiếm đối tượng bài học
         Lesson lesson = findLessonById(lessonId);
         if(lesson == null){
-            return ApiResponse.error("ID bài học không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID bài học không tồn tại"));
         }
 
         //Xác thực tiêu đề bài học
         if (req.getTitle() != null){
             if (isTitleExisted(req.getTitle())){
-                return ApiResponse.error("Tiêu đề bài học đã tồn tại",HttpStatus.CONFLICT);
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(ApiResponse.error("Tiêu đề bài học đã tồn tại"));
             }
             lesson.setTitle(req.getTitle());
         }
@@ -146,7 +171,9 @@ public class LessonService {
         //Xác thực chương
         if (req.getChapterId() != null){
             if (!chapterService.isExistByID(req.getChapterId())){
-                return ApiResponse.error("ID chương không tồn tại", HttpStatus.NOT_FOUND);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("ID chương không tồn tại"));
             }
             lesson.setChapterId(req.getChapterId());
         }
@@ -156,12 +183,16 @@ public class LessonService {
         if (image != null){
             //Kiểm tra định dạng ảnh
             if (!Objects.equals(image.getContentType(), "image/png") && !Objects.equals(image.getContentType(), "image/jpeg")){
-                return ApiResponse.error("Hình ảnh chỉ chấp nhận phần mở rộng là png,jpg,jpeg",HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Hình ảnh chỉ chấp nhận phần mở rộng là png,jpg,jpeg"));
             }
 
             //Kiểm tra kích thước ảnh (tối đa 10MB)
             if (image.getSize() > multipartProperties.getMaxFileSize().toBytes()){
-                return ApiResponse.error("Hình ảnh chỉ chấp nhận dung lượng tối đa 10MB",HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Hình ảnh chỉ chấp nhận dung lượng tối đa 10MB"));
             }
             lesson.setImg(fileName);
         }
@@ -169,53 +200,65 @@ public class LessonService {
 
         //Xác thực người cập nhật
         if (req.getOperator() == null){
-            return ApiResponse.error("Yêu cầu API thiếu thông tin : ID người thao tác", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu API thiếu thông tin : ID người thao tác"));
         }
 
         String operatorName = userService.getUsernameById(req.getOperator());
         if (operatorName == null){
-            return ApiResponse.error("ID người thao tác không tồn tại", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID người thao tác không tồn tại"));
         }
         lesson.setUpdatedBy(operatorName);
 
         //Lưu thông tin cập nhật xuống CSDL
         lessonRepository.save(lesson);
-        return ApiResponse.success("Cập nhật thông tin bài học thành công",lesson);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin bài học thành công",lesson));
     }
 
     //Cập nhật bài học vào ải
-    public ApiResponse<Lesson> setLessonToCP(String lessonId, String CPId){
+    public ResponseEntity<ApiResponse<Lesson>> setLessonToCP(String lessonId, String CPId){
         Lesson lesson = findLessonById(lessonId);
         if (lesson == null){
-            return ApiResponse.error("ID bài học không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID bài học không tồn tại"));
         }
 
         if (!checkPointService.isExistedById(CPId)){
-            return ApiResponse.error("ID ải không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID ải không tồn tại"));
         }
 
         lesson.setCheckPointId(CPId);
-        return ApiResponse.success("Cập nhật bài học vào ải thành công", lesson);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật bài học vào ải thành công", lesson));
     }
 
     //Dời bài học ra khỏi ải
-    public ApiResponse<Lesson> removeLessonFromCP(String lessonId){
+    public ResponseEntity<ApiResponse<Lesson>> removeLessonFromCP(String lessonId){
         Lesson lesson = findLessonById(lessonId);
         if (lesson == null){
-            return ApiResponse.error("ID bài học không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID bài học không tồn tại"));
         }
         lesson.setCheckPointId(null);
         lessonRepository.save(lesson);
-        return ApiResponse.success("Cập nhật dời bài học khỏi ải thành công",lesson);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật dời bài học khỏi ải thành công",lesson));
     }
 
     //Xoá bài học
-    public ApiResponse<?> deleteLesson(String lessonId){
+    public ResponseEntity<ApiResponse<?>> deleteLesson(String lessonId){
         Lesson lesson = findLessonById(lessonId);
         if (lesson == null){
-            return ApiResponse.error("ID bài học không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID bài học không tồn tại"));
         }
         lessonRepository.deleteById(lessonId);
-        return ApiResponse.success("Xoá bài học thành công", null);
+        return ResponseEntity.ok(ApiResponse.success("Xoá bài học thành công", null));
     }
 }

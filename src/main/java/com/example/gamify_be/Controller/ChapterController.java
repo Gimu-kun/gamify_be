@@ -4,6 +4,7 @@ import com.example.gamify_be.Dto.ApiResponse.ApiResponse;
 import com.example.gamify_be.Entity.Chapter;
 import com.example.gamify_be.Service.ChapterService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,7 @@ public class ChapterController {
     ChapterService chapterService;
 
     @GetMapping()
-    public ApiResponse<List<Chapter>> getAllChapter(){
+    public ResponseEntity<ApiResponse<List<Chapter>>> getAllChapter(){
         return chapterService.getAllChapter();
     }
 }

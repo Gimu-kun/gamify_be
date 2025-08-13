@@ -7,6 +7,7 @@ import com.example.gamify_be.Entity.User;
 import com.example.gamify_be.Service.JourneyService;
 import com.example.gamify_be.Service.TakeJourneyService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,33 +22,33 @@ public class JourneyController {
     TakeJourneyService takeJourneyService;
 
     @PostMapping()
-    public ApiResponse<Journey> createJourney(@RequestBody JourneyRequestDto req){
+    public ResponseEntity<ApiResponse<Journey>> createJourney(@RequestBody JourneyRequestDto req){
         return journeyService.createJourney(req);
     }
 
     @PatchMapping("/ord/{id}")
-    public ApiResponse<Journey> setOrder(@PathVariable String id,@RequestParam Integer order){
+    public ResponseEntity<ApiResponse<Journey>> setOrder(@PathVariable String id,@RequestParam Integer order){
         return journeyService.setOrder(id,order);
     }
 
     @PatchMapping("/{id}")
-    public ApiResponse<Journey> updateJourney(@PathVariable String id,@RequestBody JourneyRequestDto req)
+    public ResponseEntity<ApiResponse<Journey>> updateJourney(@PathVariable String id,@RequestBody JourneyRequestDto req)
     {
         return journeyService.updateJourney(id,req);
     }
 
     @PostMapping("/take")
-    public ApiResponse<?> takeJourney(@RequestParam String userId,@RequestParam String journeyId){
+    public ResponseEntity<ApiResponse<?>> takeJourney(@RequestParam String userId,@RequestParam String journeyId){
         return takeJourneyService.createTakeJourney(userId,journeyId);
     }
 
     @GetMapping("/taken_users")
-    public ApiResponse<List<User>> getAllTakenUserByJourney(@RequestParam String journeyId){
+    public ResponseEntity<ApiResponse<List<User>>> getAllTakenUserByJourney(@RequestParam String journeyId){
         return takeJourneyService.getAllTakenUserByJourney(journeyId);
     }
 
     @GetMapping("/taken_journeys")
-    public ApiResponse<List<Journey>> getAllTakenJourneyByUser(@RequestParam String userId){
+    public ResponseEntity<ApiResponse<List<Journey>>> getAllTakenJourneyByUser(@RequestParam String userId){
         return takeJourneyService.getAllTakenJourneyByUser(userId);
     }
 }
