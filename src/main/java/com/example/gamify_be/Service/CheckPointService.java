@@ -10,6 +10,7 @@ import com.example.gamify_be.Repository.CheckPointRepository;
 import com.google.protobuf.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -102,16 +103,20 @@ public class CheckPointService {
     }
 
     //Tạo ải mới
-    public ApiResponse<CheckPoint> createCP(CPRequestDto req){
+    public ResponseEntity<ApiResponse<CheckPoint>> createCP(CPRequestDto req){
         //Kiểm tra trường tên ải không được để trống
         if (req.getName() == null){
-            return ApiResponse.error("Tên ải không được để trống", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Tên ải không được để trống"));
         }
 
         //Kiểm tra người thao tác có tồn tại không
         User operator = userService.getUserById(req.getOperator());
         if (operator == null){
-            return ApiResponse.error("Không tìm thấy người thao tác tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người thao tác tương ứng"));
         };
 
         //Tạo đối tượng ải mới
@@ -120,25 +125,31 @@ public class CheckPointService {
         //Lưu xuống CSDL
         try{
             checkPointRepository.save(nCP);
-            return ApiResponse.success("Tạo ải thành công",nCP);
+            return ResponseEntity.ok(ApiResponse.success("Tạo ải thành công",nCP));
         }catch(Exception e){
-            return ApiResponse.error("Lỗi trong quá trình lưu ải mới : "+ e,HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình lưu ải mới : "+ e));
         }
     }
 
     //Cập nhật nội dung ải
-    public ApiResponse<CheckPoint> updateCP(String id, CPRequestDto req){
+    public ResponseEntity<ApiResponse<CheckPoint>> updateCP(String id, CPRequestDto req){
         //Tìm đối tượng ải
         CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
-            return ApiResponse.error("Không tìm thấy đối tượng ải tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy đối tượng ải tương ứng"));
         }
 
         //Kiểm tra trường tên ải không được để trống
         if (req.getName() != null){
             //Kiểm tra tên ải có bị trùng không
             if (isNameExisted(req.getName())){
-                return ApiResponse.error("Tên ải đã tồn tại", HttpStatus.CONFLICT);
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(ApiResponse.error("Tên ải đã tồn tại"));
             }
             checkPoint.setName(req.getName());
         }
@@ -152,25 +163,31 @@ public class CheckPointService {
 
         //Kiểm tra trường người thao tác
         if (req.getOperator() == null){
-            return ApiResponse.error("Yêu cầu chưa cung cấp người thao tác",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu chưa cung cấp người thao tác"));
         }
 
         //Kiểm tra người thao tác có tồn tại không
         User operator = userService.getUserById(req.getOperator());
         if (operator == null){
-            return ApiResponse.error("Không tìm thấy người thao tác tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người thao tác tương ứng"));
         };
         checkPoint.setUpdated_by(operator.getUsername());
         checkPointRepository.save(checkPoint);
-        return ApiResponse.success("Cập nhật thông tin ải thành công",checkPoint);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật thông tin ải thành công",checkPoint));
     }
 
     //Thiết lập ải vào lộ trình và màn
-    public ApiResponse<CheckPoint> setPosition(String id,CPPositionRequestDto req){
+    public ResponseEntity<ApiResponse<CheckPoint>> setPosition(String id,CPPositionRequestDto req){
         //Tìm kiếm đối tượng ải tương ứng
         CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
-            return ApiResponse.error("Không tìm được ải tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm được ải tương ứng"));
         }
 
         //Tìm kiếm đối tượng lộ trình tương ứng
@@ -178,7 +195,9 @@ public class CheckPointService {
         if (req.getJourneyId() != null){
             Journey journey = journeyService.getJourneyById(req.getJourneyId());
             if (journey == null){
-                return ApiResponse.error("Không tìm thấy lộ trình với ID tương ứng", HttpStatus.NOT_FOUND);
+                return ResponseEntity
+                        .status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("Không tìm thấy lộ trình với ID tương ứng"));
             }
             checkPoint.setJourney_id(req.getJourneyId());
         }else{
@@ -192,36 +211,46 @@ public class CheckPointService {
         //Kiểm tra người thao tác có tồn tại không
         User operator = userService.getUserById(req.getOperator());
         if (operator == null){
-            return ApiResponse.error("Không tìm thấy người thao tác tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người thao tác tương ứng"));
         };
         checkPoint.setUpdated_by(operator.getUsername());
 
         //Cập nhật dữ liệu xuống CSDL
         try{
             checkPointRepository.save(checkPoint);
-            return ApiResponse.success("Đã cập nhật vị trí của ải",checkPoint);
+            return ResponseEntity.ok(ApiResponse.success("Đã cập nhật vị trí của ải",checkPoint));
         }catch(Exception e){
-            return ApiResponse.error("Lỗi trong quá trình cập nhật vị trí ải", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình cập nhật vị trí ải"));
         }
     }
 
     //Cập nhật thứ tự ải
-    public ApiResponse<CheckPoint> setCPOrder(String id, Integer ord, String operatorId){
+    public ResponseEntity<ApiResponse<CheckPoint>> setCPOrder(String id, Integer ord, String operatorId){
         //Tìm ra đối tượng ải tương ứng
         CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
-            return ApiResponse.error("Không tìm thấy ải tương ứng",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy ải tương ứng"));
         }
 
         //Kiểm tra trường người thao tác
         if (operatorId == null){
-            return ApiResponse.error("Yêu cầu chưa cung cấp người thao tác",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu chưa cung cấp người thao tác"));
         }
 
         //Kiểm tra người thao tác có tồn tại không
         User operator = userService.getUserById(operatorId);
         if (operator == null){
-            return ApiResponse.error("Không tìm thấy người thao tác tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người thao tác tương ứng"));
         };
 
         //Tìm ra danh sách các ải chung lộ trình và màn với ải đối tượng
@@ -236,9 +265,11 @@ public class CheckPointService {
             checkPoint.setUpdated_by(operator.getUsername());
             try{
                 checkPointRepository.save(checkPoint);
-                return ApiResponse.success("Cập nhật thứ tự thành công",checkPoint);
+                return ResponseEntity.ok(ApiResponse.success("Cập nhật thứ tự thành công",checkPoint));
             }catch(Exception e){
-                return ApiResponse.error("Lỗi trong quá trình cập nhật thứ tự ải : " +e,HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("Lỗi trong quá trình cập nhật thứ tự ải : " +e));
             }
         }else{
             //Đã được sử dụng => hoán đổi vị trị 2 đối tượng và lưu lại
@@ -249,30 +280,38 @@ public class CheckPointService {
             checkPointTemp.setUpdated_by(operator.getUsername());
             try{
                 checkPointRepository.saveAll(Arrays.asList(checkPoint,checkPointTemp));
-                return ApiResponse.success("Cập nhật thứ tự thành công",checkPoint);
+                return ResponseEntity.ok(ApiResponse.success("Cập nhật thứ tự thành công",checkPoint));
             }catch(Exception e){
-                return ApiResponse.error("Lỗi trong quá trình cập nhật thứ tự ải : " +e,HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("Lỗi trong quá trình cập nhật thứ tự ải : " +e));
             }
         }
     };
 
     //Huỷ thứ tự ải
-    public ApiResponse<CheckPoint>  removeCPOrder(String id, String operatorId){
+    public ResponseEntity<ApiResponse<CheckPoint>>  removeCPOrder(String id, String operatorId){
         //Tìm ra đối tượng ải tương ứng
         CheckPoint checkPoint = getById(id);
         if (checkPoint == null){
-            return ApiResponse.error("Không tìm thấy ải tương ứng",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy ải tương ứng"));
         }
 
         //Kiểm tra trường người thao tác
         if (operatorId == null){
-            return ApiResponse.error("Yêu cầu chưa cung cấp người thao tác",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Yêu cầu chưa cung cấp người thao tác"));
         }
 
         //Kiểm tra người thao tác có tồn tại không
         User operator = userService.getUserById(operatorId);
         if (operator == null){
-            return ApiResponse.error("Không tìm thấy người thao tác tương ứng", HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy người thao tác tương ứng"));
         };
 
         //Tìm ra danh sách các ải chung lộ trình và màn với ải đối tượng
@@ -291,23 +330,27 @@ public class CheckPointService {
         //Cập nhật vào CSDL
         try{
             checkPointRepository.saveAll(checkPointList);
-            return ApiResponse.success("Huỷ thứ tự ải thành công",checkPoint);
+            return ResponseEntity.ok(ApiResponse.success("Huỷ thứ tự ải thành công",checkPoint));
         }catch(Exception e){
-            return ApiResponse.error("Lỗi trong quá trình huỷ thứ tự ải : " + e, HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình huỷ thứ tự ải : " + e));
         }
     }
 
     //Lấy tất cả dữ liệu ải
-    public ApiResponse<List<CheckPoint>> getAllCP() {
-        return ApiResponse.success("Lấy dữ liệu ải thành công",checkPointRepository.findAll());
+    public ResponseEntity<ApiResponse<List<CheckPoint>>> getAllCP() {
+        return ResponseEntity.ok(ApiResponse.success("Lấy dữ liệu ải thành công",checkPointRepository.findAll()));
     }
 
     //Lấy dữ liệu ải theo id
-    public ApiResponse<CheckPoint> getCPById(String id){
+    public ResponseEntity<ApiResponse<CheckPoint>> getCPById(String id){
         CheckPoint cp = getById(id);
         if (cp == null){
-            return ApiResponse.error("ID ải không tồn tại",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID ải không tồn tại"));
         }
-        return ApiResponse.success("Lấy thông tin ải theo id thành công",cp);
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin ải theo id thành công",cp));
     }
 }

@@ -7,6 +7,7 @@ import com.example.gamify_be.Entity.User;
 import com.example.gamify_be.Repository.JourneyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -41,36 +42,44 @@ public class JourneyService {
 
 
     //Tạo mới lộ trình
-    public ApiResponse<Journey> createJourney(JourneyRequestDto req){
+    public ResponseEntity<ApiResponse<Journey>> createJourney(JourneyRequestDto req){
         //Tên lộ trình không được trùng
         if (isTitleExisted(req.getTitle())){
-            return ApiResponse.error("Tiêu đề lộ trình đã được sử dụng!", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.error("Tiêu đề lộ trình đã được sử dụng!"));
         }
 
         //Truy xuất tên tài khoản người thao tác
         User user = userService.getUserById(req.getOperator());
         if (user == null){
-            return ApiResponse.error("ID người thao tác không đúng!", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID người thao tác không đúng!"));
         }
 
         //Tạo mới lộ trình và lưu vào CSDL
         try{
             Journey nJourney = new Journey(req.getTitle(),req.getDescription(),user.getUsername());
             journeyRepository.save(nJourney);
-            return ApiResponse.success("Tạo lộ trình thành công",nJourney);
+            return ResponseEntity.ok(ApiResponse.success("Tạo lộ trình thành công",nJourney));
         }catch(Exception e){
-            return ApiResponse.error("Lỗi trong quá trình tạo lộ trình :" + e,HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình tạo lộ trình :" + e));
         }
     }
 
     //Cập nhật thứ tự lộ trình
-    public ApiResponse<Journey> setOrder(String journeyId, Integer ord){
+    public ResponseEntity<ApiResponse<Journey>> setOrder(String journeyId, Integer ord){
         Journey fromJourney = getJourneyById(journeyId);
         Journey toJourney = getJourneyByOrd(ord);
 
         //Không tìm thấy lộ trình đối tượng => id lộ trình sai
         if (fromJourney == null){
-            return ApiResponse.error("Không tìm thấy lộ trình đối tượng",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy lộ trình đối tượng"));
         }
 
         //Không tìm thấy lộ trình đích => đổi thứ tự trực tiếp
@@ -78,15 +87,19 @@ public class JourneyService {
             try{
                 fromJourney.setOrd(ord);
                 journeyRepository.save(fromJourney);
-                return ApiResponse.success("Cập nhật thứ tự thành công",fromJourney);
+                return ResponseEntity.ok(ApiResponse.success("Cập nhật thứ tự thành công",fromJourney));
             }catch(Exception e){
-                return ApiResponse.error("Lỗi trong quá trình cập nhật : " + e,HttpStatus.INTERNAL_SERVER_ERROR);
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(ApiResponse.error("Lỗi trong quá trình cập nhật : " + e));
             }
         }
 
         //ID lộ trình đối tượng và lộ trình đích giống nhau => thứ tự không thay đổi
         if (Objects.equals(fromJourney.getId(), toJourney.getId())){
-            return ApiResponse.error("Thứ tự lộ trình không thay đổi",HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Thứ tự lộ trình không thay đổi"));
         }
 
         //Thứ tự lộ trình đối tượng thay đổi , thứ tự lộ trình đích về null
@@ -94,37 +107,47 @@ public class JourneyService {
             fromJourney.setOrd(toJourney.getOrd());
             toJourney.setOrd(null);
             journeyRepository.saveAll(Arrays.asList(fromJourney,toJourney));
-            return ApiResponse.success("Cập nhật thứ tự thành công",fromJourney);
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật thứ tự thành công",fromJourney));
         }catch(Exception e){
-            return ApiResponse.error("Lỗi trong quá trình cập nhật : " + e,HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình cập nhật : " + e));
         }
     }
 
     //Cập nhật nội dung lộ trình
-    public ApiResponse<Journey> updateJourney(String journeyId,JourneyRequestDto req){
+    public ResponseEntity<ApiResponse<Journey>> updateJourney(String journeyId,JourneyRequestDto req){
         //Truy xuất đối tượng lộ trình
         Journey journey = getJourneyById(journeyId);
         if (journey == null){
-            return ApiResponse.error("Không tìm thấy lộ trình tương ứng",HttpStatus.NOT_FOUND);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy lộ trình tương ứng"));
         }
         //Kiểm tra các trường dữ liệu đầu vào
         //Tên lộ trình không được trùng
         if (req.getTitle() != null){
             if (isTitleExisted(req.getTitle())){
-                return ApiResponse.error("Tiêu đề lộ trình đã được sử dụng!", HttpStatus.BAD_REQUEST);
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(ApiResponse.error("Tiêu đề lộ trình đã được sử dụng!"));
             }
             journey.setTitle(req.getTitle());
         }
 
         //Truy xuất tên tài khoản người thao tác
         if (req.getOperator() == null) {
-            return ApiResponse.error("Cập nhật lộ trình cần ID người thao tác", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Cập nhật lộ trình cần ID người thao tác"));
         }
 
         User user = userService.getUserById(req.getOperator());
         //Không tìm thấy thông tin người thao tác => id không đúng
         if (user == null){
-            return ApiResponse.error("ID người thao tác không đúng!", HttpStatus.BAD_REQUEST);
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("ID người thao tác không đúng!"));
         }
         journey.setUpdated_by(user.getUsername());
 
@@ -136,9 +159,11 @@ public class JourneyService {
         //Cập nhật thông tin lộ trình xuống CSDL
         try{
             journeyRepository.save(journey);
-            return ApiResponse.success("Cập nhật lộ trình thành công",journey);
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật lộ trình thành công",journey));
         }catch (Exception e){
-            return ApiResponse.error("Lỗi trong quá trình cập nhật lộ trình : " + e,HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi trong quá trình cập nhật lộ trình : " + e));
         }
     }
 }

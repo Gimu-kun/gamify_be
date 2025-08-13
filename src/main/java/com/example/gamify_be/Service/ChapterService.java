@@ -4,6 +4,7 @@ import com.example.gamify_be.Dto.ApiResponse.ApiResponse;
 import com.example.gamify_be.Entity.Chapter;
 import com.example.gamify_be.Repository.ChapterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,8 +21,8 @@ public class ChapterService {
     }
 
     //Lấy thông tin toàn bộ chương
-    public ApiResponse<List<Chapter>> getAllChapter(){
-        return ApiResponse.success("Lấy thông tin chương thành công",chapterRepository.findAll());
+    public ResponseEntity<ApiResponse<List<Chapter>>> getAllChapter(){
+        return ResponseEntity.ok(ApiResponse.success("Lấy thông tin chương thành công",chapterRepository.findAll()));
     }
 
     //Lấy tên hiển thị dựa theo id

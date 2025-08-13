@@ -5,6 +5,7 @@ import com.example.gamify_be.Dto.Lesson.LessonRequestDto;
 import com.example.gamify_be.Entity.Lesson;
 import com.example.gamify_be.Service.LessonService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,29 +20,29 @@ public class LessonController {
     LessonService lessonService;
 
     @GetMapping()
-    public ApiResponse<List<Lesson>> getAllLesson(){
+    public ResponseEntity<ApiResponse<List<Lesson>>> getAllLesson(){
         return lessonService.getAllLesson();
     }
 
     @GetMapping("/{id}")
-    public ApiResponse<Lesson> getLessonById(@PathVariable String id){
+    public ResponseEntity<ApiResponse<Lesson>> getLessonById(@PathVariable String id){
         return lessonService.getLessonById(id);
     }
 
     @GetMapping("/by_cp/{checkPointId}")
-    public ApiResponse<List<Lesson>> getLessonByCPId(@PathVariable String checkPointId){
+    public ResponseEntity<ApiResponse<List<Lesson>>> getLessonByCPId(@PathVariable String checkPointId){
         return lessonService.getLessonByCPId(checkPointId);
     }
 
     @PostMapping()
-    public ApiResponse<Lesson> createLesson(
+    public ResponseEntity<ApiResponse<Lesson>> createLesson(
             @ModelAttribute LessonRequestDto req,
             @RequestParam(required = false) MultipartFile image) throws IOException {
         return lessonService.createLesson(req,image);
     }
 
     @PatchMapping("/{id}")
-    public ApiResponse<Lesson> updateLesson(
+    public ResponseEntity<ApiResponse<Lesson>> updateLesson(
             @PathVariable String id,
             @ModelAttribute LessonRequestDto req,
             @RequestParam(required = false) MultipartFile image){
@@ -49,7 +50,7 @@ public class LessonController {
     }
 
     @PatchMapping("mv_in_cp")
-    public ApiResponse<Lesson> setLessonToCP(
+    public ResponseEntity<ApiResponse<Lesson>> setLessonToCP(
             @RequestParam String id,
             @RequestParam String cp_id
     ){
@@ -57,14 +58,14 @@ public class LessonController {
     }
 
     @PatchMapping("rm_from_cp")
-    public ApiResponse<Lesson> removeLessonFromCP(
+    public ResponseEntity<ApiResponse<Lesson>> removeLessonFromCP(
             @RequestParam String id
     ){
         return lessonService.removeLessonFromCP(id);
     }
 
     @DeleteMapping("/{id}")
-    public ApiResponse<?> deleteLesson(
+    public ResponseEntity<ApiResponse<?>> deleteLesson(
             @PathVariable String id
     ){
         return lessonService.deleteLesson(id);
