@@ -7,6 +7,7 @@ import com.example.gamify_be.Entity.User;
 import com.example.gamify_be.Service.RoadmapService;
 import com.example.gamify_be.Service.TakeRoadmapService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,16 @@ public class RoadmapController {
         return roadmapService.getAllRoadmap();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<Roadmap>> getRoadmapById(@PathVariable String id){
+        Roadmap roadmap = roadmapService.getRoadmapById(id);
+        if (roadmap == null){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Không tìm thấy dữ liệu của lộ trình"));
+        }else{
+            return ResponseEntity.ok(ApiResponse.success("Lấy dữ liệu của lộ trình thành công", roadmap));
+        }
+    }
+
     @PostMapping()
     public ResponseEntity<ApiResponse<Roadmap>> createRoadmap(@RequestBody RoadmapRequestDto req){
         return roadmapService.createRoadmap(req);
@@ -41,7 +52,7 @@ public class RoadmapController {
         return roadmapService.updateRoadmap(id,req);
     }
 
-    @PatchMapping("/status")
+    @PatchMapping("/status/{id}")
     public ResponseEntity<ApiResponse<Roadmap>> updateStatus(@PathVariable String id){
         return roadmapService.updateStatus(id);
     }

@@ -130,7 +130,7 @@ public class RoadmapService {
         }
         //Kiểm tra các trường dữ liệu đầu vào
         //Tên lộ trình không được trùng
-        if (req.getTitle() != null){
+        if (req.getTitle() != null && !req.getTitle().equals(roadmap.getTitle())){
             if (isTitleExisted(req.getTitle())){
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
