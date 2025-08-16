@@ -3,6 +3,7 @@ package com.example.gamify_be.Service;
 import com.example.gamify_be.Dto.ApiResponse.ApiResponse;
 import com.example.gamify_be.Dto.Lesson.LessonRequestDto;
 import com.example.gamify_be.Entity.Lesson;
+import com.example.gamify_be.Enums.Lesson.LessonStatusEnum;
 import com.example.gamify_be.Repository.LessonRepository;
 import com.example.gamify_be.Utils.FirebaseUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -260,5 +261,23 @@ public class LessonService {
         }
         lessonRepository.deleteById(lessonId);
         return ResponseEntity.ok(ApiResponse.success("Xoá bài học thành công", null));
+    }
+
+    //Cập nhật trạng thái
+    public ResponseEntity<ApiResponse<Lesson>> updateStatus(String lessonId){
+        Optional<Lesson> optLesson = lessonRepository.findById(lessonId);
+        if (optLesson.isEmpty()){
+            return ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error("Không tìm thấy bài học tương ứng"));
+        }
+        Lesson lesson = optLesson.get();
+        if (lesson.getStatus() == LessonStatusEnum.active){
+            lesson.setStatus(LessonStatusEnum.inactive);
+        }else{
+            lesson.setStatus(LessonStatusEnum.active);
+        }
+        lessonRepository.save(lesson);
+        return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái thành công",lesson));
     }
 }

@@ -70,4 +70,9 @@ public class LessonController {
     ){
         return lessonService.deleteLesson(id);
     }
+
+    @PatchMapping("/status")
+    public ResponseEntity<ApiResponse<Lesson>> updateStatus(@PathVariable String id){
+        return lessonService.updateStatus(id);
+    }
 }

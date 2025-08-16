@@ -1,13 +1,13 @@
-package com.example.gamify_be.Dto.Journey;
+package com.example.gamify_be.Dto.Roadmap;
 
-public class JourneyRequestDto {
+public class RoadmapRequestDto {
     private String title;
     private String description;
     private String operator;
 
-    public JourneyRequestDto(){}
+    public RoadmapRequestDto(){}
 
-    public JourneyRequestDto(String title, String description, String operator) {
+    public RoadmapRequestDto(String title, String description, String operator) {
         this.title = title;
         this.description = description;
         this.operator = operator;
@@ -35,5 +35,14 @@ public class JourneyRequestDto {
 
     public void setOperator(String operator) {
         this.operator = operator;
+    }
+
+    @Override
+    public String toString() {
+        return "RoadmapRequestDto{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", operator='" + operator + '\'' +
+                '}';
     }
 }

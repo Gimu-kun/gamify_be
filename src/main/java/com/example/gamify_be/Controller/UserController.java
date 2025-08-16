@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @GetMapping("/decode/{token}")
-    public ResponseEntity<ApiResponse<?>> decodeToken(@PathVariable String token){
+    public ResponseEntity<ApiResponse<String>> decodeToken(@PathVariable String token){
         return userService.decodeToken(token);
     }
 

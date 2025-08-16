@@ -1,24 +1,24 @@
 package com.example.gamify_be.Dto.CheckPoint;
 
 public class CPPositionRequestDto {
-    private String journeyId;
+    private String roadmapId;
     private Integer section;
     private String operator;
 
     public CPPositionRequestDto(){}
 
-    public CPPositionRequestDto( String journeyId, Integer section, String operator) {
-        this.journeyId = journeyId;
+    public CPPositionRequestDto( String roadmapId, Integer section, String operator) {
+        this.roadmapId = roadmapId;
         this.section = section;
         this.operator = operator;
     }
 
-    public String getJourneyId() {
-        return journeyId;
+    public String getRoadmapId() {
+        return roadmapId;
     }
 
-    public void setJourneyId(String journey_id) {
-        this.journeyId = journey_id;
+    public void setRoadmapId(String roadmap_id) {
+        this.roadmapId = roadmap_id;
     }
 
     public Integer getSection() {

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Table(name = "users")
 public class User {
     @Id
-    private final String id = UUID.randomUUID().toString();
+    private final String id = "USER-" + UUID.randomUUID().toString().replace("-","").substring(0,10);
     private String full_name;
     private String username;
     private String passwords;
