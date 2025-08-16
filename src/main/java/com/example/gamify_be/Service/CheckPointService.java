@@ -4,10 +4,9 @@ import com.example.gamify_be.Dto.ApiResponse.ApiResponse;
 import com.example.gamify_be.Dto.CheckPoint.CPRequestDto;
 import com.example.gamify_be.Dto.CheckPoint.CPPositionRequestDto;
 import com.example.gamify_be.Entity.CheckPoint;
-import com.example.gamify_be.Entity.Journey;
+import com.example.gamify_be.Entity.Roadmap;
 import com.example.gamify_be.Entity.User;
 import com.example.gamify_be.Repository.CheckPointRepository;
-import com.google.protobuf.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,7 @@ public class CheckPointService {
     UserService userService;
 
     @Autowired
-    JourneyService journeyService;
+    RoadmapService roadmapService;
 
     //Hàm kiểm tra ải tồn tại hay không bằng id
     public boolean isExistedById(String id){
@@ -42,8 +41,8 @@ public class CheckPointService {
     };
 
     //Hàm lấy dữ liệu các ải cùng 1 lộ trình , cùng 1 màn
-    private List<CheckPoint> getAllCPByJourneyAndSection(String JourneyId, Integer section){
-        return checkPointRepository.findAllByJourneyIdAndSection(JourneyId,section);
+    private List<CheckPoint> getAllCPByJourneyAndSection(String RoadmapId, Integer section){
+        return checkPointRepository.findAllByRoadmapIdAndSection(RoadmapId,section);
     }
 
     //Hàm tìm đối tượng theo thứ tự trong danh sách CP
@@ -192,14 +191,14 @@ public class CheckPointService {
 
         //Tìm kiếm đối tượng lộ trình tương ứng
         //Trường nhập có giá trị => tìm xác thực id lộ trình và cập nhật
-        if (req.getJourneyId() != null){
-            Journey journey = journeyService.getJourneyById(req.getJourneyId());
-            if (journey == null){
+        if (req.getRoadmapId() != null){
+            Roadmap roadmap = roadmapService.getRoadmapById(req.getRoadmapId());
+            if (roadmap == null){
                 return ResponseEntity
                         .status(HttpStatus.NOT_FOUND)
                         .body(ApiResponse.error("Không tìm thấy lộ trình với ID tương ứng"));
             }
-            checkPoint.setJourney_id(req.getJourneyId());
+            checkPoint.setJourney_id(req.getRoadmapId());
         }else{
             //Trường không có giá trị => cập nhật id lộ trình thành null
             checkPoint.setJourney_id(null);

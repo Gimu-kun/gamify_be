@@ -1,5 +1,6 @@
 package com.example.gamify_be.Entity;
 
+import com.example.gamify_be.Enums.Lesson.LessonStatusEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -19,6 +20,7 @@ public class Lesson {
     private String title;
     private String content;
     private String img;
+    private LessonStatusEnum status = LessonStatusEnum.active;
     @Column(name = "created_by")
     private String createdBy;
     @Column(name = "updated_by")
@@ -93,5 +95,13 @@ public class Lesson {
 
     public void setUpdatedBy(String updatedBy) {
         this.updatedBy = updatedBy;
+    }
+
+    public LessonStatusEnum getStatus() {
+        return status;
+    }
+
+    public void setStatus(LessonStatusEnum status) {
+        this.status = status;
     }
 }

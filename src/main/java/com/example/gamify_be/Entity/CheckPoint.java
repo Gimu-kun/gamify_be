@@ -13,8 +13,8 @@ public class CheckPoint {
 
     @Id
     private final String id = UUID.randomUUID().toString();
-    @Column(name = "journey_id")
-    private String journeyId;
+    @Column(name = "roadmap_id")
+    private String roadmapId;
     private Integer section;
     private Integer ord;
     private String name;
@@ -36,11 +36,11 @@ public class CheckPoint {
     }
 
     public String getJourney_id() {
-        return journeyId;
+        return roadmapId;
     }
 
     public void setJourney_id(String journey_id) {
-        this.journeyId = journey_id;
+        this.roadmapId = journey_id;
     }
 
     public Integer getSection() {

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface CheckPointRepository extends JpaRepository<CheckPoint,String> {
-    List<CheckPoint> findAllByJourneyIdAndSection(String journeyId, Integer section);
+    List<CheckPoint> findAllByRoadmapIdAndSection(String journeyId, Integer section);
 
     Optional<CheckPoint> findByName(String name);
 }

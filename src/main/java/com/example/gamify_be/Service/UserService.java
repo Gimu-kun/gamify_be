@@ -76,10 +76,10 @@ public class UserService {
         }
 
         //Tên tài khoản phải có ít nhất 8 ký tự
-        if (req.getUsername().length() < 8 ){
+        if (req.getUsername().length() < 6 ){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Tên tài khoản không được ít hơn 8 kí tự"));
+                    .body(ApiResponse.error("Tên tài khoản không được ít hơn 6 kí tự"));
         }
 
         //Tên tài khoản không được trùng
@@ -97,10 +97,10 @@ public class UserService {
         }
 
         //Mật khẩu phải có ít nhất 8 ký tự
-        if (req.getPasswords().length() < 8 ){
+        if (req.getPasswords().length() < 6 ){
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Mật khẩu không được ít hơn 8 kí tự"));
+                    .body(ApiResponse.error("Mật khẩu không được ít hơn 6 kí tự"));
         }
 
         //Giới tính bắc buộc
@@ -175,10 +175,10 @@ public class UserService {
 
         //Xác thực và cập nhật mật khẩu
         if (req.getPasswords() != null){
-            if (req.getPasswords().length() < 8){
+            if (req.getPasswords().length() < 6){
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
-                        .body(ApiResponse.error("Mật khẩu phải có ít nhất 8 ký tự"));
+                        .body(ApiResponse.error("Mật khẩu phải có ít nhất 6 ký tự"));
             }
             user.setPasswords(PasswordsUtil.hashPassword(req.getPasswords()));
         }
@@ -241,7 +241,7 @@ public class UserService {
     }
 
     //Giải mã JWT để lấy userId trong subject
-    public ResponseEntity<ApiResponse<?>> decodeToken(String token){
+    public ResponseEntity<ApiResponse<String>> decodeToken(String token){
         DecodedJWT jwt = jwtUtil.decodeToken(token);
         return ResponseEntity.ok(ApiResponse.success("Mã token",jwt.getSubject()));
     }
